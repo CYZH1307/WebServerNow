@@ -1,42 +1,47 @@
-#include <iostream>
-#include "webserver.h"
-#include <cstring>
-
-#include <winsock.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/socket.h>
+#include <netinet/in.h>
 #include <arpa/inet.h>
+#include <unistd.h>
+#include <errno.h>
+#include <sys/epoll.h>
+#include <signal.h>
 
-// #include
+#include "locker.h"
+#include "threadpool.h"
+
+
+//添加信号
+void addsig(int sig, void(headler)(int)) {
+    struct sigaction sa;
+    memset(&sa, '\0', sizeof(sa));
+    sa.sa_handler = headler;
+    sigfillset(&sa.sa_mask);
+    sigaction(sig, &sam NULL);
+}
 
 int main(int argc, char* argv[]) {
-    std::cout << "WebServer Now!\n";
-
-    SOCKET socket_fd = socket(AF_INET, SOCK_STREAM, 0);//IP类型，传输方式，协议
-
-    if(socket_fd == INVALID_SOCKET) {
-        std::cout<< "server_socket = INVALID_SOCKET\n";
-        return 1;
+    if(argc <= 1) {
+        printf("运行格式：%s port_number\n", basename(argv[0]));
+        exit(-1);
     }
-    struct sockaddr_in server_addr;
-    bzero(&server_addr, sizeof(server_addr));
 
-    // 设置地址
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = inet_addr("114.115.151.138");
-    server_addr.sin_port = htons(8888);
+    int port = atoi(argv[1]); //获取端口号
 
-    bind(socket_fd, (sockaddr*)server_addr, sizeof(server_addr));
+    addsig(SIGPIPE, SIG_IGN);
 
-    listen(socket_fa, SOMAXCONN);
+    // 创建线程池，处理http连接任务
+    threadpool<http_conn> * pool = NULL;
+    try {
+        pool = new threadpool<http_conn>;
 
-    {
-        struct sockaddr_in clent_addr;
-        socklen_t clent_addr_len = sizeof(clent_addr);
-        bzero(&clent_addr, sizeof(clent_addr));
-
-        int clent_socket_fd = accept(socket_fd, (sockaddr*)(clent_addr), &clent_addr_len);
-        printf("new client fd %d! IP: %s Port: %d\n", clnt_sockfd, inet_ntoa(clnt_addr.sin_addr), ntohs(clnt_addr.sin_port));
+    } catch(...) {
+        printf("create threadpool<http_conn> fail\n");
+        exit(-1);
     }
+
 
     return 0;
 }
