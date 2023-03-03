@@ -4,12 +4,12 @@
 #include <pthread.h>
 #include <list>
 #include <exception>
-#include <cstdio.h>
+#include <stdio.h>
 
 #include "locker.h"
 
 template <typename T>
-class thread_pool {
+class threadpool {
 public:
     threadpool(int thread_number = 8, int max_requests = 10000) ;
     ~threadpool();
@@ -25,7 +25,7 @@ private:
     pthread_t * m_threads; // 线程数组
 
     int m_max_requests; // 请求队列最大长度
-    std::list<T*> m_workqueue>; // 请求队列
+    std::list<T*> m_workqueue; // 请求队列
 
     locker m_queuelocker; //互斥锁
     sem m_queuestat; // 信号量
@@ -34,7 +34,7 @@ private:
 
 template<typename T>
 threadpool<T>::threadpool(int thread_number, int max_requests) :
-    m_thread_number(thread_number), m_max_requests(max_requests) m_stop(false), m_threads(NULL) {
+    m_thread_number(thread_number), m_max_requests(max_requests), m_stop(false), m_threads(NULL) {
     
     if(thread_number <= 0 || max_requests <= 0) {
         throw std::exception();
@@ -55,7 +55,7 @@ threadpool<T>::threadpool(int thread_number, int max_requests) :
             throw std::exception();
         }
 
-        if(pthead_detach(m_threads[i])) {
+        if(pthread_detach(m_threads[i])) {
             delete [] m_threads;
             throw std::exception();
         }
@@ -92,7 +92,7 @@ void* threadpool<T>::worker (void* arg) {
 }
 
 template<typename T>
-void* threadpool<T>::run () {
+void threadpool<T>::run () {
     while(!m_stop) {
         m_queuestat.wait(); //阻塞
         m_queuelocker.lock();
