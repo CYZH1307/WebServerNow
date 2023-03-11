@@ -1,2 +1,12 @@
-# WebSeverNow
-初学者cyzh学习websever，NOW！
+# WebServerNow
+初学者cyzh学习webserver，NOW
+
+## 有待改进
+
+#### 完善HTTP请求
+- 实现POST请求报文（基础页面加入一个简单的计算器）
+- 支持更多的文件类型，比如mp4
+
+#### 加入日志系统
+#### 加入登录系统
+#### 使用现代C++优化代码
